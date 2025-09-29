@@ -19,26 +19,22 @@ app.get('/health', (_req: Request, res: Response) => {
   res.json({ status: 'ok' });
 });
 
-// Instantiate upstream clients per request (could be pooled)
-app.use('/graphql', (req: Request, _res: Response, next: NextFunction) => {
-  const productosBaseURL = process.env.REST_PRODUCTOS_URL || 'http://localhost:3001';
-  const ordenesBaseURL = process.env.REST_ORDENES_URL || 'http://localhost:3002';
-
-  const productClient = new RestClient({ baseURL: productosBaseURL });
-  const orderClient = new RestClient({ baseURL: ordenesBaseURL });
-
-  (req as any).context = {
-    productAPI: new ProductAPI(productClient),
-    orderAPI: new OrderAPI(orderClient),
-    // userId: derivar de JWT (pendiente)
-  };
-  next();
-});
-
 app.use('/graphql', createHandler({
   schema,
   rootValue: rootResolver,
-  context: (req) => (req as any).context,
+  context: (req, params) => {
+    const productosBaseURL = process.env.REST_PRODUCTOS_URL || 'http://localhost:3001';
+    const ordenesBaseURL = process.env.REST_ORDENES_URL || 'http://localhost:3002';
+
+    const productClient = new RestClient({ baseURL: productosBaseURL });
+    const orderClient = new RestClient({ baseURL: ordenesBaseURL });
+
+    return {
+      productAPI: new ProductAPI(productClient),
+      orderAPI: new OrderAPI(orderClient),
+      // userId: derivar de JWT (pendiente)
+    };
+  },
 }));
 
 const PORT = process.env.PORT || 4000;

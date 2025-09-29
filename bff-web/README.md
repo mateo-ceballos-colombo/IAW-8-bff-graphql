@@ -244,10 +244,121 @@ Si usas los microservicios en Docker Compose, levanta todo desde la raíz.
 
 ---
 ## 7. Uso con curl
+
+### 7.1. Health Check
+```bash
+curl -X GET http://localhost:4000/health
+```
+
+### 7.2. Introspección del Schema
 ```bash
 curl -X POST http://localhost:4000/graphql \
   -H 'Content-Type: application/json' \
-  -d '{"query":"{ products { _id nombre precio } }"}'
+  -d '{"query":"query { __schema { types { name } } }"}'
+```
+
+### 7.3. Consultar todos los productos
+```bash
+curl -X POST http://localhost:4000/graphql \
+  -H 'Content-Type: application/json' \
+  -d '{"query":"query { products { _id nombre descripcionCorta precio stock } }"}'
+```
+
+### 7.4. Consultar un producto específico
+```bash
+curl -X POST http://localhost:4000/graphql \
+  -H 'Content-Type: application/json' \
+  -d '{"query":"query { product(id: \"PRODUCT_ID_HERE\") { _id nombre descripcionCorta precio stock } }"}'
+```
+
+### 7.5. Buscar productos con filtro
+```bash
+curl -X POST http://localhost:4000/graphql \
+  -H 'Content-Type: application/json' \
+  -d '{"query":"query { products(search: \"Producto\") { _id nombre descripcionCorta precio stock } }"}'
+```
+
+### 7.6. Crear una orden
+```bash
+curl -X POST http://localhost:4000/graphql \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "query": "mutation { createOrder(input: { userId: \"user123\", items: [{ productId: \"PRODUCT_ID_HERE\", cantidad: 2 }], direccionEnvio: \"Calle 123, Ciudad\" }) { _id userId total createdAt } }"
+  }'
+```
+
+### 7.7. Consultar órdenes de un usuario
+```bash
+curl -X POST http://localhost:4000/graphql \
+  -H 'Content-Type: application/json' \
+  -d '{"query":"query { ordersByUser(userId: \"user123\") { _id userId total createdAt items { productId cantidad } } }"}'
+```
+
+### 7.8. Query con variables (recomendado para producción)
+```bash
+curl -X POST http://localhost:4000/graphql \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "query": "query GetProductById($productId: ID!) { product(id: $productId) { _id nombre descripcionCorta precio stock } }",
+    "variables": { "productId": "PRODUCT_ID_HERE" }
+  }'
+```
+
+### 7.9. Mutation con variables
+```bash
+curl -X POST http://localhost:4000/graphql \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "query": "mutation CreateOrder($input: CreateOrderInput!) { createOrder(input: $input) { _id userId total createdAt items { productId cantidad } } }",
+    "variables": {
+      "input": {
+        "userId": "user123",
+        "items": [
+          { "productId": "PRODUCT_ID_HERE", "cantidad": 2 }
+        ],
+        "direccionEnvio": "Calle 123, Ciudad"
+      }
+    }
+  }'
+```
+
+### 7.10. Ejemplo completo paso a paso
+
+1. **Primero crear un producto** (usando el servicio REST directamente):
+```bash
+curl -X POST http://localhost:3001/api/productos \
+  -H "Content-Type: application/json" \
+  -d '{
+    "nombre": "Laptop Gaming",
+    "descripcionCorta": "Laptop para gaming de alta gama",
+    "descripcionLarga": "Laptop con procesador Intel i7, 16GB RAM, tarjeta gráfica RTX 4060",
+    "precio": 1299.99,
+    "stock": 5,
+    "categoria": "Electrónicos"
+  }'
+```
+
+2. **Consultar productos desde GraphQL**:
+```bash
+curl -X POST http://localhost:4000/graphql \
+  -H 'Content-Type: application/json' \
+  -d '{"query":"query { products { _id nombre descripcionCorta precio stock } }"}'
+```
+
+3. **Crear una orden usando el ID del producto**:
+```bash
+curl -X POST http://localhost:4000/graphql \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "query": "mutation { createOrder(input: { userId: \"user123\", items: [{ productId: \"USE_PRODUCT_ID_FROM_STEP_2\", cantidad: 1 }], direccionEnvio: \"Av. Córdoba 123, Buenos Aires\" }) { _id userId total createdAt } }"
+  }'
+```
+
+4. **Verificar las órdenes del usuario**:
+```bash
+curl -X POST http://localhost:4000/graphql \
+  -H 'Content-Type: application/json' \
+  -d '{"query":"query { ordersByUser(userId: \"user123\") { _id userId total createdAt items { productId cantidad } } }"}'
 ```
 
 ---

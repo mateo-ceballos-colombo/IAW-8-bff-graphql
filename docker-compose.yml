@@ -1,5 +1,7 @@
 version: "3.9"
+
 services:
+
   mongo:
     image: mongo:6
     restart: unless-stopped
@@ -7,6 +9,7 @@ services:
       - "27017:27017"
     volumes:
       - mongo_data:/data/db
+
   rest-productos:
     build: ./rest-productos
     environment:
@@ -16,6 +19,7 @@ services:
       - mongo
     ports:
       - "3001:3001"
+
   rest-ordenes:
     build: ./rest-ordenes
     environment:
@@ -25,16 +29,19 @@ services:
       - mongo
     ports:
       - "3002:3002"
+
   bff-web:
     build: ./bff-web
     environment:
       - PORT=4000
-      - REST_PRODUCTOS_URL=http://rest-productos:3001
-      - REST_ORDENES_URL=http://rest-ordenes:3002
+      - REST_PRODUCTOS_URL=http://localhost:3001
+      - REST_ORDENES_URL=http://localhost:3002
     depends_on:
       - rest-productos
       - rest-ordenes
     ports:
       - "4000:4000"
+
+
 volumes:
   mongo_data:
