@@ -8,7 +8,16 @@ export class ProductAPI {
     return this.client.get<ProductDTO[]>('/api/productos', search ? { search } : undefined);
   }
 
-  get(id: string): Promise<ProductDTO | null> {
-    return this.client.get<ProductDTO>(`/api/productos/${id}`);
+  async get(id: string): Promise<ProductDTO | null> {
+    try {
+      return await this.client.get<ProductDTO>(`/api/productos/${id}`);
+    } catch (error: any) {
+      // Si es 404 (no encontrado) o 400 (ID inválido), retornar null
+      if (error.response?.status === 404 || error.response?.status === 400) {
+        return null;
+      }
+      // Para otros errores, re-lanzar la excepción
+      throw error;
+    }
   }
 }

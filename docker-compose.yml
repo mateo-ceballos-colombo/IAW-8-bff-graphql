@@ -34,8 +34,8 @@ services:
     build: ./bff-web
     environment:
       - PORT=4000
-      - REST_PRODUCTOS_URL=http://localhost:3001
-      - REST_ORDENES_URL=http://localhost:3002
+      - REST_PRODUCTOS_URL=http://rest-productos:3001
+      - REST_ORDENES_URL=http://rest-ordenes:3002
     depends_on:
       - rest-productos
       - rest-ordenes
