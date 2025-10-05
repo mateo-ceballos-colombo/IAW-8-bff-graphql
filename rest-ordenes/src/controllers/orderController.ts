@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import mongoose from 'mongoose';
 import { createOrder, getOrder, listOrders } from '../services/orderService.js';
 import { createOrderSchema } from '../validators/orderSchemas.js';
 
@@ -15,6 +16,15 @@ export async function listOrdersHandler(req: Request, res: Response, next: NextF
 export async function getOrderHandler(req: Request, res: Response, next: NextFunction) {
   try {
     const { id } = req.params;
+    
+    // Validar que el ID sea un ObjectId válido
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ 
+        code: 'INVALID_ID', 
+        message: 'ID de orden inválido' 
+      });
+    }
+    
     const order = await getOrder(id);
     if (!order) return res.status(404).json({ code: 'NOT_FOUND', message: 'Orden no encontrada' });
     res.json(order);

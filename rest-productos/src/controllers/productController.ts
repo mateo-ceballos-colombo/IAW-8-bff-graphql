@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import mongoose from 'mongoose';
 import { createProduct, deleteProduct, getProduct, listProducts, updateProduct } from '../services/productService.js';
 import { createProductSchema, updateProductSchema } from '../validators/productSchemas.js';
 
@@ -13,6 +14,15 @@ export async function listProductsHandler(req: Request, res: Response, next: Nex
 export async function getProductHandler(req: Request, res: Response, next: NextFunction) {
   try {
     const { id } = req.params;
+    
+    // Validar que el ID sea un ObjectId válido
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ 
+        code: 'INVALID_ID', 
+        message: 'ID de producto inválido' 
+      });
+    }
+    
     const product = await getProduct(id);
     if (!product) return res.status(404).json({ code: 'NOT_FOUND', message: 'Producto no encontrado' });
     res.json(product);
@@ -33,6 +43,15 @@ export async function createProductHandler(req: Request, res: Response, next: Ne
 export async function updateProductHandler(req: Request, res: Response, next: NextFunction) {
   try {
     const { id } = req.params;
+    
+    // Validar que el ID sea un ObjectId válido
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ 
+        code: 'INVALID_ID', 
+        message: 'ID de producto inválido' 
+      });
+    }
+    
     const parsed = updateProductSchema.parse(req.body);
     const updated = await updateProduct(id, parsed);
     if (!updated) return res.status(404).json({ code: 'NOT_FOUND', message: 'Producto no encontrado' });
@@ -46,6 +65,15 @@ export async function updateProductHandler(req: Request, res: Response, next: Ne
 export async function deleteProductHandler(req: Request, res: Response, next: NextFunction) {
   try {
     const { id } = req.params;
+    
+    // Validar que el ID sea un ObjectId válido
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ 
+        code: 'INVALID_ID', 
+        message: 'ID de producto inválido' 
+      });
+    }
+    
     const deleted = await deleteProduct(id);
     if (!deleted) return res.status(404).json({ code: 'NOT_FOUND', message: 'Producto no encontrado' });
     res.status(204).send();
